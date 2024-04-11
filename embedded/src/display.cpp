@@ -1,0 +1,258 @@
+#include <Arduino.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <splash.h>
+#include "motor_state.hpp"
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_ADDR 0x3C
+
+Adafruit_SSD1306 disp(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+void write_text_at(const char *txt, int x, int y) {
+    disp.setTextColor(WHITE);
+    disp.setTextSize(1);
+    disp.setCursor(x, y);
+    disp.print(txt);
+}
+
+void draw_image() {
+    disp.drawBitmap(0, 0, splash1_data, splash1_width, splash1_height, WHITE);
+}
+
+void setup() {
+    Serial.begin(9600);
+    if (!disp.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+        Serial.println("Failed to initialize display");
+    } else
+        Serial.println("Success");
+}
+
+#define ARROW_BITMAP_W 24
+#define ARROW_BITMAP_H 24
+
+const uint8_t PROGMEM arrow_right_bitmap[] = {
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000010,0b00000000,
+    0b00000000,0b00000011,0b00000000,
+    0b00000000,0b00000011,0b10000000,
+    0b00000000,0b00000011,0b11000000,
+    0b00000000,0b00000011,0b11100000,
+    0b00000000,0b00000011,0b11110000,
+    0b00000000,0b00000011,0b11111000,
+    0b11111111,0b11111111,0b11111100,
+    0b11111111,0b11111111,0b11111110,
+    0b11111111,0b11111111,0b11111111,
+    0b11111111,0b11111111,0b11111110,
+    0b11111111,0b11111111,0b11111100,
+    0b00000000,0b00000011,0b11111000,
+    0b00000000,0b00000011,0b11110000,
+    0b00000000,0b00000011,0b11100000,
+    0b00000000,0b00000011,0b11000000,
+    0b00000000,0b00000011,0b10000000,
+    0b00000000,0b00000011,0b00000000,
+    0b00000000,0b00000010,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+};
+const uint8_t PROGMEM arrow_left_bitmap[] = {
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b01000000,0b00000000,
+    0b00000000,0b11000000,0b00000000,
+    0b00000001,0b11000000,0b00000000,
+    0b00000011,0b11000000,0b00000000,
+    0b00000111,0b11000000,0b00000000,
+    0b00001111,0b11000000,0b00000000,
+    0b00011111,0b11000000,0b00000000,
+    0b00111111,0b11111111,0b11111111,
+    0b01111111,0b11111111,0b11111111,
+    0b11111111,0b11111111,0b11111111,
+    0b01111111,0b11111111,0b11111111,
+    0b00111111,0b11111111,0b11111111,
+    0b00011111,0b11000000,0b00000000,
+    0b00001111,0b11000000,0b00000000,
+    0b00000111,0b11000000,0b00000000,
+    0b00000011,0b11000000,0b00000000,
+    0b00000001,0b11000000,0b00000000,
+    0b00000000,0b11000000,0b00000000,
+    0b00000000,0b01000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+    0b00000000,0b00000000,0b00000000,
+};
+
+const uint8_t PROGMEM arrow_up_bitmap[] = {
+    0b00000000,0b00100000,0b00000000,
+    0b00000000,0b01110000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000001,0b11111100,0b00000000,
+    0b00000011,0b11111110,0b00000000,
+    0b00000111,0b11111111,0b00000000,
+    0b00001111,0b11111111,0b10000000,
+    0b00011111,0b11111111,0b11000000,
+    0b00111111,0b11111111,0b11100000,
+    0b01111111,0b11111111,0b11110000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+};
+
+const uint8_t PROGMEM arrow_down_bitmap[] = {
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b01111111,0b11111111,0b11110000,
+    0b00111111,0b11111111,0b11100000,
+    0b00011111,0b11111111,0b11000000,
+    0b00001111,0b11111111,0b10000000,
+    0b00000111,0b11111111,0b00000000,
+    0b00000011,0b11111110,0b00000000,
+    0b00000001,0b11111100,0b00000000,
+    0b00000000,0b11111000,0b00000000,
+    0b00000000,0b01110000,0b00000000,
+    0b00000000,0b00100000,0b00000000,
+};
+
+// 78 x 62
+const uint8_t crouch_bitmap [] PROGMEM = {
+	0xff, 0xff, 0xff, 0xff, 0xe0, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xff, 0x80, 0x7f, 
+	0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xff, 0x00, 0x3f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 
+	0xff, 0xfe, 0x00, 0x1f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xfc, 0x00, 0x0f, 0xff, 0xff, 
+	0xff, 0x80, 0xff, 0xff, 0xff, 0xfc, 0x00, 0x07, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xf8, 
+	0x00, 0x07, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xf8, 0x00, 0x07, 0xff, 0xff, 0xff, 0x80, 
+	0xff, 0xff, 0xff, 0xf8, 0x00, 0x07, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xf8, 0x00, 0x07, 
+	0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0xf0, 0x00, 0x0f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 
+	0xff, 0xc0, 0x00, 0x0f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x80, 0x00, 0x1f, 0xff, 0xff, 
+	0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x3f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xfe, 0x00, 
+	0x00, 0x7f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xfc, 0x00, 0x7f, 0xff, 0xbf, 0xff, 0xff, 0x80, 
+	0xff, 0xff, 0xf8, 0x00, 0x7f, 0xf8, 0x3f, 0xf3, 0xff, 0x80, 0xff, 0xff, 0xf0, 0x00, 0x00, 0x00, 
+	0x00, 0x01, 0xff, 0x80, 0xff, 0xff, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0x80, 0xff, 0xff, 
+	0xc0, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0x80, 0xff, 0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x7f, 
+	0xff, 0x80, 0xff, 0xff, 0x00, 0x00, 0x03, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 
+	0x1f, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0x80, 
+	0xff, 0xfe, 0x00, 0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x3f, 
+	0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x1f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 
+	0x00, 0x00, 0x00, 0x1f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x3f, 0xff, 0xff, 
+	0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x3f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 
+	0x00, 0x3f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x3f, 0xff, 0xff, 0xff, 0x80, 
+	0xff, 0xfe, 0x00, 0x00, 0x20, 0x3f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x00, 0xe0, 0x7f, 
+	0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0x3f, 0xe0, 0x7f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 
+	0x00, 0x7f, 0xe0, 0x7f, 0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0x00, 0xff, 0xc0, 0x7f, 0xff, 0xff, 
+	0xff, 0x80, 0xff, 0xfe, 0x00, 0xff, 0xc0, 0x7f, 0xff, 0xff, 0xff, 0x80, 0xe0, 0x7e, 0x00, 0xff, 
+	0xc0, 0x7f, 0xff, 0xff, 0xff, 0x80, 0xc0, 0x00, 0x01, 0xff, 0xc0, 0x7f, 0xff, 0xff, 0xff, 0x80, 
+	0xc0, 0x00, 0x01, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xff, 0x80, 0x80, 0x00, 0x01, 0xff, 0x80, 0x03, 
+	0xff, 0xff, 0xff, 0x80, 0x80, 0x00, 0x01, 0xff, 0x80, 0x01, 0xff, 0xff, 0xff, 0x80, 0x80, 0x00, 
+	0x07, 0xff, 0x80, 0x01, 0xff, 0xff, 0xff, 0x80, 0x80, 0x00, 0x0f, 0xff, 0x80, 0x01, 0xff, 0xff, 
+	0xff, 0x80, 0x01, 0xff, 0xff, 0xff, 0xc0, 0x03, 0xff, 0xff, 0xff, 0x80, 0x01, 0xff, 0xff, 0xff, 
+	0xc0, 0x07, 0xff, 0xff, 0xff, 0x80, 0x01, 0xff, 0xff, 0xff, 0xe0, 0x1f, 0xff, 0xff, 0xff, 0x80, 
+	0x81, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xc3, 0xff, 0xff, 0xff, 0xff, 0xff, 
+	0xff, 0xff, 0xff, 0x80
+};
+
+enum Action {
+    GRAB,
+    DROP,
+    AIM_START,
+    AIM_END,
+};
+
+void display_text(int x, int y, char *text) {
+    disp.setTextColor(WHITE);
+    disp.setTextSize(2);
+    disp.setCursor(x, y);
+    disp.print(text);
+
+}
+
+#define ACTION_TEXT_X 80
+#define ACTION_TEXT_Y 0
+
+void display_action_text(Action action) {
+    switch (action) {
+        case GRAB:
+            display_text(ACTION_TEXT_X, ACTION_TEXT_Y, "GRAB");
+            break;
+        case DROP:
+            display_text(ACTION_TEXT_X, ACTION_TEXT_Y, "DROP");
+            break;
+        case AIM_START:
+            display_text(ACTION_TEXT_X, ACTION_TEXT_Y, "AIM START");
+            break;
+        case AIM_END:
+            display_text(ACTION_TEXT_X, ACTION_TEXT_Y, "AIM END");
+            break;
+    }
+}
+
+void process_serial_input() {
+    uint8_t in = Serial.read();
+    switch (in) {
+        case FORWARD:
+            Serial.println(F("FORWARD"));
+            write_text_at("FORWARD", 0, 0);
+            break;
+        case STOP:
+            Serial.println(F("STOP"));
+            write_text_at("STOP", 0, 0);
+            break;
+        case REVERSE:
+            Serial.println(F("REVERSE"));
+            write_text_at("REVERSE", 0, 0);
+            break;
+    }
+}
+
+int i = 0;
+
+void loop() {
+    disp.clearDisplay();
+
+    if (i < 10)
+        disp.drawBitmap(0, 25, arrow_left_bitmap, ARROW_BITMAP_W, ARROW_BITMAP_H, WHITE);
+    else if (i >= 10 && i < 20)
+        disp.drawBitmap(0, 25, arrow_right_bitmap, ARROW_BITMAP_W, ARROW_BITMAP_H, WHITE);
+    else if (i >= 20 && i < 30)
+        disp.drawBitmap(0, 25, arrow_up_bitmap, ARROW_BITMAP_W, ARROW_BITMAP_H, WHITE);
+    else if (i >= 30 && i < 40)
+        disp.drawBitmap(0, 25, arrow_down_bitmap, ARROW_BITMAP_W, ARROW_BITMAP_H, WHITE);
+
+    disp.drawBitmap(60, 15, crouch_bitmap, 78, 62, WHITE);
+
+    // i = (i + 1) % 40;
+    i = random(40);
+    display_text(0, 0, "ACTION: ");
+    display_action_text(GRAB);
+
+    if (Serial.available())
+        process_serial_input();
+
+    disp.display();
+
+    delay(500);
+}
